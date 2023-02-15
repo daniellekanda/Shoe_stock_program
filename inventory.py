@@ -1,6 +1,7 @@
 #This is a program for Shoe Shop employees.
 #Employees can access shoe data for customers or make changes to existing stock. 
 
+
 #========The beginning of the class==========
 class Shoe:
 
@@ -31,9 +32,32 @@ class Shoe:
         
         return(output)
 
+class Passwords:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+    
+    def get_username(self):
+        username = self.username 
+
+        return(username)
+    
+    def get_password(self):
+        password = self.password
+
+        return(password)
+    
+    def __str__(self):
+        output = "Username: " + self.username + "\n"
+        output += "Password: " + self.password + "\n"
+
+        return(output)
+
 #=============Shoe list===========
 #This list stores the data for all shoe objects
+#This list stores all data for login objects 
 shoe_list = []
+login_list = []
 
 #==========Functions outside the class==============
 
@@ -164,15 +188,50 @@ def highest_qty():
 
     return(highest)
 
+#function to read login data from login text file 
+def read_login_data():
+    with open('password.txt', 'r+') as f:
+        for line in f:
+            content = line.strip("\n").split(",")
+            x = Passwords(content[0], content[1])
+            login_list.append(x)
+
+#requests login information and checks against login list. If login is successful returns access type for user (admin has all access, other users limited)
+def login():
+    while True:
+        print("Welcome to the Danielle Sports Employee Terminal.\nPlease enter your login details to begin.")    
+        username_requst = input("Enter username: ").lower()
+        password_request = input("Enter password: ").lower()
+
+        for users in login_list:
+            if users.username == username_requst and users.password == password_request:
+                user_found = True
+                break
+            else:
+                user_found = False
+
+        if user_found == True:
+            if username_requst == "admin":     
+                user_access = 1
+                break
+            else:
+                user_access = 0
+                break
+        elif user_found == False:
+            print("Your username or password is incorrect. Please try again.")
+    
+    return(user_access)
 
 #==========Main Menu=============
 
 #reads shoe data into list for manipulation. 
 read_shoes_data()
 
+#reads login data from text file into list for manipulation 
+read_login_data()
+
 #welcomes user and asks for their name. This can be edited in the future to include permissions for admins.
-user_name = input("Welcome to the Danielle Sports Employee Terminal.\nPlease enter your name to begin: ")
-print(f"Welcome {user_name}!")
+all_access = login()
 
 
 while True:
@@ -203,7 +262,7 @@ while True:
                 except ValueError:
                     print("Please enter a valid number")
         #Menu option for user making changes to stock 
-        elif main_menu == 2:
+        elif main_menu == 2 and all_access == 1:
             while True: 
                 try:
                     stock_menu = int(input("""
@@ -226,6 +285,10 @@ while True:
                         break
                 except ValueError:
                     print("Please enter a valid number")
+        #Non-admins cannot access stock changes. Sent back to main menu. 
+        elif main_menu == 2 and all_access == 0:
+            print("You do not have admin privileges to make stock changes!")
+            main_menu
         #exits program 
         elif main_menu == 3:
             print("Goodbye!")
